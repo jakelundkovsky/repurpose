@@ -2,6 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 
+interface GeneratedContent {
+  twitter?: string[];
+  email?: string;
+  linkedin?: string;
+}
+
 export default function Home() {
   const [showContent, setShowContent] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -116,6 +122,20 @@ export default function Home() {
         if (!response.ok) throw new Error('Failed to generate Twitter thread');
         const data = await response.json();
         generatedContent = data.tweets.join('\n\n');
+        
+      } else if (content === "LinkedIn Post") {
+        response = await fetch('/api/generate-linkedin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transcript: transcription,
+            metadata: { title: "Your Video Title" }
+          }),
+        });
+        
+        if (!response.ok) throw new Error('Failed to generate LinkedIn post');
+        const data = await response.json();
+        generatedContent = data.post;
         
       } else {
         generatedContent = `${content} Content`;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Home() {
   const [showContent, setShowContent] = useState(false);
@@ -8,20 +8,46 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState<string>("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [transcription, setTranscription] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const toggleDropdown = (id: string) => {
     setActiveDropdown(activeDropdown === id ? null : id);
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === "text/plain") {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        setTranscription(content);
+        console.log("Transcription content:", content);
+        setShowContent(true);
+        setError(null);
+      };
+      reader.onerror = () => {
+        setError("Failed to read the file. Please try again.");
+      };
+      reader.readAsText(file);
+    } else {
+      setError("Please upload a valid .txt file.");
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-
-    if (youtubeRegex.test(url)) {
+    if (transcription) {
       setShowContent(true);
       setError(null);
     } else {
-      setError("Please enter a valid YouTube URL.");
+      const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+      if (youtubeRegex.test(url)) {
+        setShowContent(true);
+        setError(null);
+      } else {
+        setError("Please enter a valid YouTube URL or upload a .txt file.");
+      }
     }
   };
 
@@ -30,6 +56,10 @@ export default function Home() {
     setActiveDropdown(null);
     setError(null);
     setUrl("");
+    setTranscription(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Reset file input
+    }
   };
 
   const handleCopy = (content: string) => {
@@ -63,6 +93,14 @@ export default function Home() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             className={`w-full p-2 border border-gray-300 rounded text-white ${showContent ? 'bg-gray-700' : 'bg-black'}`}
+            disabled={showContent || transcription !== null}
+          />
+          <input
+            type="file"
+            accept=".txt"
+            onChange={handleFileUpload}
+            ref={fileInputRef} // Attach ref to file input
+            className="w-full p-2 border border-gray-300 rounded text-white bg-black"
             disabled={showContent}
           />
           {!showContent && (
@@ -103,7 +141,7 @@ export default function Home() {
             ))}
             <button
               onClick={handleReset}
-              className="bg-white text-black px-4 py-2 rounded border border-gray-300 shadow-md transform transition-transform duration-200 hover:scale-105 hover:bg-gray-100 flex items-center mt-4"
+              className="bg-red-500 text-white px-4 py-2 rounded border border-red-600 shadow-md transform transition-transform duration-200 hover:scale-105 hover:bg-red-600 flex items-center mt-4"
             >
               <span className="mr-2">←</span> Repurpose Another Video
             </button>

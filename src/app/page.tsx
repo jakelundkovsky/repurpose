@@ -123,6 +123,20 @@ export default function Home() {
         const data = await response.json();
         generatedContent = data.tweets.join('\n\n');
         
+      } else if (content === "Blog Post (e.g. Substack, Medium)") {
+        response = await fetch('/api/generate-blog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transcript: transcription,
+            metadata: { title: "Your Video Title" }
+          }),
+        });
+        
+        if (!response.ok) throw new Error('Failed to generate blog post');
+        const data = await response.json();
+        generatedContent = `${data.title}\n\n${data.content}`;
+        
       } else if (content === "LinkedIn Post") {
         response = await fetch('/api/generate-linkedin', {
           method: 'POST',

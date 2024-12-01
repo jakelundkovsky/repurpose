@@ -41,6 +41,11 @@ export async function POST(req: Request) {
       8. Use (X/N) to indicate the tweet number and total number of tweets
       9. Do not use hashtags
       10. Please double check that you are not using any emojis or hashtags
+      11. No not be corny or cheesy or overly excited or salesly
+      12. Your goal is to inspire curiosity and engagement
+      13. There should be no questions in the thread, only curiosity-inducing statements
+      14. Do not mention price in the thread
+      15. The thread should be written in first person in a conversational tone
       `;
 
 
@@ -51,7 +56,7 @@ export async function POST(req: Request) {
       Format each tweet on a new line starting with a number and a period (1., 2., etc)`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }

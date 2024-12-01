@@ -81,11 +81,16 @@ export default function Home() {
   };
 
   const handleDropdownContent = async (content: string) => {
-    if (content === "Newsletter (e.g. Beehiiv, Kit, ActiveCampaign)" && transcription) {
-      try {
-        setDropdownContent(prev => ({ ...prev, [content]: "Loading..." }));
-        
-        const response = await fetch('/api/generate-email', {
+    if (!transcription) return;
+    
+    try {
+      setDropdownContent(prev => ({ ...prev, [content]: "Loading..." }));
+      
+      let response;
+      let generatedContent;
+      
+      if (content === "Newsletter (e.g. Beehiiv, Kit, ActiveCampaign)") {
+        response = await fetch('/api/generate-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -93,17 +98,34 @@ export default function Home() {
             metadata: { title: "Your Video Title" }
           }),
         });
-
+        
         if (!response.ok) throw new Error('Failed to generate email');
         const data = await response.json();
-        const generatedContent = `Subject: ${data.subject}\n\n${data.body}`;
-        setDropdownContent(prev => ({ ...prev, [content]: generatedContent }));
-      } catch (error) {
-        const errorMessage = "Failed to generate email content. Please try again.";
-        setDropdownContent(prev => ({ ...prev, [content]: errorMessage }));
+        generatedContent = `Subject: ${data.subject}\n\n${data.body}`;
+        
+      } else if (content === "Twitter Thread") {
+        response = await fetch('/api/generate-twitter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transcript: transcription,
+            metadata: { title: "Your Video Title" }
+          }),
+        });
+        
+        if (!response.ok) throw new Error('Failed to generate Twitter thread');
+        const data = await response.json();
+        generatedContent = data.tweets.join('\n\n');
+        
+      } else {
+        generatedContent = `${content} Content`;
       }
-    } else {
-      setDropdownContent(prev => ({ ...prev, [content]: `${content} Content` }));
+      
+      setDropdownContent(prev => ({ ...prev, [content]: generatedContent }));
+      
+    } catch (error) {
+      const errorMessage = `Failed to generate ${content.toLowerCase()}. Please try again.`;
+      setDropdownContent(prev => ({ ...prev, [content]: errorMessage }));
     }
   };
 

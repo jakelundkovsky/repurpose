@@ -10,9 +10,17 @@ export default function Home() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [transcription, setTranscription] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [dropdownContent, setDropdownContent] = useState<{ [key: string]: string }>({});
 
   const toggleDropdown = (id: string) => {
-    setActiveDropdown(activeDropdown === id ? null : id);
+    if (activeDropdown === id) {
+      setActiveDropdown(null);
+    } else {
+      setActiveDropdown(id);
+      if (!dropdownContent[id]) {
+        handleDropdownContent(id);
+      }
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,6 +80,33 @@ export default function Home() {
       });
   };
 
+  const handleDropdownContent = async (content: string) => {
+    if (content === "Newsletter (e.g. Beehiiv, Kit, ActiveCampaign)" && transcription) {
+      try {
+        setDropdownContent(prev => ({ ...prev, [content]: "Loading..." }));
+        
+        const response = await fetch('/api/generate-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transcript: transcription,
+            metadata: { title: "Your Video Title" }
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to generate email');
+        const data = await response.json();
+        const generatedContent = `Subject: ${data.subject}\n\n${data.body}`;
+        setDropdownContent(prev => ({ ...prev, [content]: generatedContent }));
+      } catch (error) {
+        const errorMessage = "Failed to generate email content. Please try again.";
+        setDropdownContent(prev => ({ ...prev, [content]: errorMessage }));
+      }
+    } else {
+      setDropdownContent(prev => ({ ...prev, [content]: `${content} Content` }));
+    }
+  };
+
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => {
@@ -127,11 +162,13 @@ export default function Home() {
                   <span className="ml-2">{activeDropdown === content ? "▼" : "➔"}</span>
                 </button>
                 {activeDropdown === content && (
-                  <div className="p-4 border border-gray-300 rounded mt-2 flex justify-between items-center">
-                    <span>{content} Content</span>
+                  <div className="p-4 border border-gray-300 rounded mt-2 flex flex-col gap-4">
+                    <div className="whitespace-pre-wrap text-left">
+                      {dropdownContent[content] || "Loading..."}
+                    </div>
                     <button
-                      onClick={() => handleCopy(`${content} Content`)}
-                      className="ml-4 bg-blue-500 p-2 rounded hover:bg-blue-600 text-white"
+                      onClick={() => handleCopy(dropdownContent[content] || "")}
+                      className="ml-4 bg-blue-500 p-2 rounded hover:bg-blue-600 text-white self-end"
                     >
                       📋 Copy
                     </button>

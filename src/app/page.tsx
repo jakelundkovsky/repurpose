@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [showContent, setShowContent] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState<string>("");
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const toggleDropdown = (id: string) => {
     setActiveDropdown(activeDropdown === id ? null : id);
@@ -30,6 +31,25 @@ export default function Home() {
     setError(null);
     setUrl("");
   };
+
+  const handleCopy = (content: string) => {
+    navigator.clipboard.writeText(content)
+      .then(() => {
+        setToast({ message: "Successfully copied to your clipboard", type: "success" });
+      })
+      .catch(() => {
+        setToast({ message: "Failed to copy to clipboard", type: "error" });
+      });
+  };
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] max-w-4xl mx-auto">
@@ -69,8 +89,14 @@ export default function Home() {
                   <span className="ml-2">{activeDropdown === content ? "▼" : "➔"}</span>
                 </button>
                 {activeDropdown === content && (
-                  <div className="p-4 border border-gray-300 rounded mt-2">
-                    {content} Content
+                  <div className="p-4 border border-gray-300 rounded mt-2 flex justify-between items-center">
+                    <span>{content} Content</span>
+                    <button
+                      onClick={() => handleCopy(`${content} Content`)}
+                      className="ml-4 bg-blue-500 p-2 rounded hover:bg-blue-600 text-white"
+                    >
+                      📋 Copy
+                    </button>
                   </div>
                 )}
               </div>
@@ -81,6 +107,13 @@ export default function Home() {
             >
               <span className="mr-2">←</span> Repurpose Another Video
             </button>
+          </div>
+        )}
+
+        {toast && (
+          <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded shadow-md ${toast.type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"}`}>
+            {toast.message}
+            <button onClick={() => setToast(null)} className="ml-4 text-white p-1 rounded bg-transparent">✖</button>
           </div>
         )}
       </main>

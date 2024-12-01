@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useRef } from "react";
 
-interface GeneratedContent {
-  twitter?: string[];
-  email?: string;
-  linkedin?: string;
-}
+const CONTENT_TYPES = [
+  "Twitter Thread",
+  "Newsletter (e.g. Beehiiv, Kit, ActiveCampaign)",
+  "Blog Post (e.g. Substack, Medium)",
+  "LinkedIn Post",
+  // "Short Form (e.g. YT/IG/TikTok)",
+];
 
 export default function Home() {
   const [showContent, setShowContent] = useState(false);
@@ -208,7 +210,7 @@ export default function Home() {
 
         {showContent && (
           <div className="flex flex-col gap-4 mt-4">
-            {["Twitter Thread", "Newsletter (e.g. Beehiiv, Kit, ActiveCampaign)", "Blog Post (e.g. Substack, Medium)", "LinkedIn Post", "Short Form (e.g. YT/IG/TikTok)"].map((content, index) => (
+            {CONTENT_TYPES.map((content, index) => (
               <div key={index}>
                 <button
                   onClick={() => toggleDropdown(content)}

@@ -45,13 +45,14 @@ export default function Home() {
             className={`w-full p-2 border border-gray-300 rounded text-white ${showContent ? 'bg-gray-700' : 'bg-black'}`}
             disabled={showContent}
           />
-          <button
-            type="submit"
-            className="bg-white text-black px-4 py-2 rounded border border-gray-300 shadow-md transform transition-transform duration-200 hover:scale-105 hover:bg-gray-100 flex items-center"
-          >
-            {showContent && <span className="mr-2">←</span>}
-            {showContent ? "Repurpose Another Video" : "Repurpose My Content"}
-          </button>
+          {!showContent && (
+            <button
+              type="submit"
+              className="bg-white text-black px-4 py-2 rounded border border-gray-300 shadow-md transform transition-transform duration-200 hover:scale-105 hover:bg-gray-100 flex items-center"
+            >
+              Repurpose My Content
+            </button>
+          )}
         </form>
 
         {error && <div className="text-red-500 mt-2">{error}</div>}
